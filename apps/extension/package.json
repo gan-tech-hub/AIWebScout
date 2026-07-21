@@ -1,0 +1,24 @@
+{
+  "name": "@ai-web-scout/extension",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch",
+    "build": "vite build",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ai-web-scout/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@ai-web-scout/eslint-config": "workspace:*",
+    "@types/chrome": "^0.0.326",
+    "eslint": "^9.27.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.1.4"
+  }
+}
