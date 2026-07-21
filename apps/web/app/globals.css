@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --canvas: 220 35% 97%;
+  --panel: 0 0% 100%;
+  --ink: 225 35% 12%;
+  --muted: 220 10% 45%;
+  --accent: 260 95% 60%;
+}
+
+.dark {
+  --canvas: 228 42% 5%;
+  --panel: 225 30% 9%;
+  --ink: 220 25% 96%;
+  --muted: 220 12% 65%;
+  --accent: 265 100% 70%;
+}
+
+* {
+  border-color: hsl(var(--ink) / 0.1);
+}
+html {
+  color-scheme: dark;
+}
+body {
+  min-height: 100vh;
+  color: hsl(var(--ink));
+  background:
+    radial-gradient(
+      circle at 15% 0%,
+      hsl(268 100% 65% / 0.16),
+      transparent 32rem
+    ),
+    radial-gradient(
+      circle at 85% 15%,
+      hsl(185 100% 55% / 0.1),
+      transparent 30rem
+    ),
+    hsl(var(--canvas));
+}
+
+::selection {
+  background: hsl(var(--accent) / 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

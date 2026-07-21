@@ -1,0 +1,17 @@
+{
+  "name": "@ai-web-scout/eslint-config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./next": "./next.js"
+  },
+  "dependencies": {
+    "@eslint/js": "^9.27.0",
+    "@next/eslint-plugin-next": "^15.3.2",
+    "eslint": "^9.27.0",
+    "eslint-config-prettier": "^10.1.5",
+    "typescript-eslint": "^8.32.1"
+  }
+}
