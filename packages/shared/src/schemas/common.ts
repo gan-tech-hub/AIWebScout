@@ -27,3 +27,8 @@ export const agentStepStatusSchema = z.enum([
 export const sourceTypeSchema = z.enum(['chrome_extension', 'web']);
 
 export const isoDateTimeSchema = z.string().datetime({ offset: true });
+
+export type PageType = z.infer<typeof pageTypeSchema>;
+export type AnalysisStatus = z.infer<typeof analysisStatusSchema>;
+export type AgentStepStatus = z.infer<typeof agentStepStatusSchema>;
+export type CaptureSourceType = z.infer<typeof sourceTypeSchema>;
