@@ -87,7 +87,7 @@ pnpm format       # format source files
 
 ## Supabase and OpenAI
 
-Phase 2 adds migrations, generated database types, repositories, and RLS policies. Phase 5 adds server-only OpenAI integration. The intended environment values and security boundaries are already documented in `.env.example` and `docs/architecture.md`.
+Phase 2 provides migrations, typed clients, repository adapters, and owner-only RLS policies. Follow [docs/supabase-setup.md](docs/supabase-setup.md) to create a project, apply the migration, configure keys, and verify policies. See [docs/persistence.md](docs/persistence.md) for the data-access architecture. Phase 5 adds server-only OpenAI integration.
 
 ## Agent design
 

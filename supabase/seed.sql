@@ -1,0 +1,3 @@
+-- Intentionally empty.
+-- User-owned rows require an auth.users record and should be created through
+-- the authenticated application flow rather than with shared seed identities.
