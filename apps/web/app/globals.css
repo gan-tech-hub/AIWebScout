@@ -3,25 +3,37 @@
 @tailwind utilities;
 
 :root {
-  --canvas: 220 35% 97%;
-  --panel: 0 0% 100%;
-  --ink: 225 35% 12%;
-  --muted: 220 10% 45%;
-  --accent: 260 95% 60%;
+  --canvas: 228 33% 96%;
+  --sidebar: 0 0% 100% / 0.62;
+  --panel: 0 0% 100% / 0.72;
+  --panel-strong: 0 0% 100% / 0.9;
+  --panel-hover: 252 80% 55% / 0.07;
+  --ink: 228 35% 10%;
+  --muted: 225 11% 43%;
+  --accent: 263 86% 57%;
+  --line: 228 25% 15% / 0.1;
 }
 
 .dark {
-  --canvas: 228 42% 5%;
-  --panel: 225 30% 9%;
+  --canvas: 228 44% 5%;
+  --sidebar: 230 40% 5% / 0.55;
+  --panel: 225 28% 10% / 0.64;
+  --panel-strong: 225 25% 12% / 0.88;
+  --panel-hover: 0 0% 100% / 0.055;
   --ink: 220 25% 96%;
-  --muted: 220 12% 65%;
-  --accent: 265 100% 70%;
+  --muted: 220 10% 62%;
+  --accent: 265 100% 72%;
+  --line: 0 0% 100% / 0.1;
 }
 
 * {
-  border-color: hsl(var(--ink) / 0.1);
+  border-color: hsl(var(--line));
 }
 html {
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+html.dark {
   color-scheme: dark;
 }
 body {
@@ -29,20 +41,62 @@ body {
   color: hsl(var(--ink));
   background:
     radial-gradient(
-      circle at 15% 0%,
-      hsl(268 100% 65% / 0.16),
+      circle at 12% -5%,
+      hsl(268 100% 65% / 0.17),
       transparent 32rem
     ),
     radial-gradient(
-      circle at 85% 15%,
-      hsl(185 100% 55% / 0.1),
+      circle at 90% 12%,
+      hsl(185 100% 55% / 0.09),
       transparent 30rem
     ),
     hsl(var(--canvas));
+  background-attachment: fixed;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image:
+    linear-gradient(hsl(var(--ink) / 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--ink) / 0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
 }
 
 ::selection {
-  background: hsl(var(--accent) / 0.35);
+  background: hsl(var(--accent) / 0.3);
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--ink) / 0.14);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: 99px;
+}
+
+@keyframes flow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+@keyframes breathe {
+  50% {
+    box-shadow: 0 0 34px hsl(var(--accent) / 0.28);
+  }
+}
+.flow-line {
+  animation: flow 1.2s linear infinite;
+}
+.agent-running {
+  animation: breathe 2.2s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
