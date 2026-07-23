@@ -24,4 +24,11 @@ export const capturePageInputSchema = z.object({
   capturedAt: isoDateTimeSchema,
 });
 
+export const captureAnalyzeDataSchema = z.object({
+  capturedPageId: z.string().uuid(),
+  analysisId: z.string().uuid(),
+  status: z.enum(['pending', 'running', 'completed']),
+});
+
 export type CapturePageInput = z.infer<typeof capturePageInputSchema>;
+export type CaptureAnalyzeData = z.infer<typeof captureAnalyzeDataSchema>;

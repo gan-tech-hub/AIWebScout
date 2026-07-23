@@ -1,12 +1,39 @@
 import type { CapturePageInput } from '@ai-web-scout/shared';
+import { analyzeCaptureWithTimeout } from '../api/analyze-capture';
+import { ExtensionError, toUserMessage } from '../api/errors';
+import { openAnalysis } from '../api/open-analysis';
 import { captureActiveTab } from '../capture/capture-active-tab';
+import { extensionConfig } from '../config';
 import './styles.css';
+
+type ViewStatus =
+  | 'idle'
+  | 'capturing'
+  | 'ready'
+  | 'submitting'
+  | 'success'
+  | 'error'
+  | 'reconnect';
+
+type ViewState = {
+  status: ViewStatus;
+  capture: CapturePageInput | null;
+  message: string;
+};
 
 const appElement = document.querySelector<HTMLElement>('#app');
 if (!appElement) throw new Error('Side Panel root was not found.');
 const app: HTMLElement = appElement;
 
-let capturedPage: CapturePageInput | null = null;
+const state: ViewState = {
+  status: 'idle',
+  capture: null,
+  message: '現在のページを取得して、送信内容を確認できます。',
+};
+const tabIdValue = new URLSearchParams(window.location.search).get('tabId');
+const parsedTabId = tabIdValue ? Number(tabIdValue) : Number.NaN;
+const panelTabId =
+  Number.isInteger(parsedTabId) && parsedTabId >= 0 ? parsedTabId : null;
 
 function escapeHtml(value: string): string {
   return value.replace(/[&<>'"]/g, (character) => {
@@ -21,26 +48,127 @@ function escapeHtml(value: string): string {
   });
 }
 
-function render(status = '現在のページを確認してから送信できます。'): void {
-  app.innerHTML = `
-    <header><div class="mark">✦</div><div><p class="eyebrow">AGENT SENSOR</p><h1>AI Web Scout</h1></div></header>
-    <section class="hero"><span class="pulse"></span><div><strong>Capture ready</strong><p>${escapeHtml(status)}</p></div></section>
-    <section class="panel">
-      <div class="label">PAGE SIGNAL</div>
+function formatDate(value: string): string {
+  return new Intl.DateTimeFormat('ja-JP', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
+}
+
+function statusLabel(): string {
+  switch (state.status) {
+    case 'capturing':
+      return 'Capturing';
+    case 'submitting':
+      return 'Sending';
+    case 'success':
+      return 'Sent';
+    case 'error':
+      return 'Needs attention';
+    case 'reconnect':
+      return 'Reconnect required';
+    case 'ready':
+      return 'Review ready';
+    default:
+      return 'Sensor ready';
+  }
+}
+
+function previewText(capture: CapturePageInput): string {
+  return (
+    capture.selectedText ||
+    capture.pageText.slice(0, 2_500) ||
+    '本文は空です。タイトルとメタ情報のみ送信されます。'
+  );
+}
+
+function renderCapture(capture: CapturePageInput): string {
+  return `
+    <section class="capture-card">
+      <div class="section-heading">
+        <span class="section-label">PAGE SIGNAL</span>
+        <span class="captured-at">${escapeHtml(formatDate(capture.capturedAt))}</span>
+      </div>
+      <h2>${escapeHtml(capture.title)}</h2>
+      <a class="page-url" href="${escapeHtml(capture.url)}" target="_blank" rel="noreferrer">
+        ${escapeHtml(capture.url)}
+      </a>
+      <div class="metrics">
+        <div><span>Page text</span><strong>${capture.pageText.length.toLocaleString()}</strong><small>chars</small></div>
+        <div><span>Selection</span><strong>${capture.selectedText.length.toLocaleString()}</strong><small>chars</small></div>
+      </div>
       ${
-        capturedPage
-          ? `
-        <h2>${escapeHtml(capturedPage.title)}</h2>
-        <a href="${escapeHtml(capturedPage.url)}" target="_blank" rel="noreferrer">${escapeHtml(capturedPage.url)}</a>
-        <dl><div><dt>Page text</dt><dd>${capturedPage.pageText.length.toLocaleString()} chars</dd></div><div><dt>Selection</dt><dd>${capturedPage.selectedText.length.toLocaleString()} chars</dd></div></dl>
-        <details><summary>取得内容を確認</summary><p>${escapeHtml(capturedPage.selectedText || capturedPage.pageText.slice(0, 2500) || '本文は空です。')}</p></details>
-      `
-          : '<div class="empty">ページを読み取ると、送信対象の内容がここに表示されます。</div>'
+        capture.metaDescription
+          ? `<div class="meta"><span>META</span><p>${escapeHtml(capture.metaDescription)}</p></div>`
+          : ''
       }
+      <details>
+        <summary><span>送信内容を確認</span><span class="chevron">⌄</span></summary>
+        <p>${escapeHtml(previewText(capture))}</p>
+      </details>
     </section>
-    <div id="message" role="status" aria-live="polite"></div>
-    <div class="actions"><button id="capture" class="secondary">ページを読み取る</button><button id="analyze" ${capturedPage ? '' : 'disabled'}>AIで分析 <span>↗</span></button></div>
-    <p class="privacy">フォーム、編集領域、HTMLは取得しません。送信前に内容を確認できます。</p>
+  `;
+}
+
+function render(): void {
+  const busy = state.status === 'capturing' || state.status === 'submitting';
+  const canAnalyze = state.capture !== null && !busy;
+  const tone =
+    state.status === 'error'
+      ? 'error'
+      : state.status === 'success'
+        ? 'success'
+        : busy
+          ? 'working'
+          : '';
+
+  app.innerHTML = `
+    <header class="brand">
+      <div class="mark" aria-hidden="true">◈</div>
+      <div><p class="eyebrow">AGENT SENSOR</p><h1>AI Web Scout</h1></div>
+      <span class="connection"><i></i> LOCAL</span>
+    </header>
+
+    <section class="status-card ${tone}">
+      <div class="status-icon"><span class="pulse"></span></div>
+      <div>
+        <strong>${statusLabel()}</strong>
+        <p id="status-message">${escapeHtml(state.message)}</p>
+        ${
+          state.status === 'reconnect'
+            ? `<div class="reconnect-guide">
+                <span>1</span><p>Chromeツールバーの<strong>AI Web Scout</strong>を押す</p>
+                <span>2</span><p><strong>現在のページに接続</strong>を押す</p>
+              </div>`
+            : ''
+        }
+      </div>
+    </section>
+
+    ${
+      state.capture
+        ? renderCapture(state.capture)
+        : `<section class="empty-state"><div class="radar"><span></span></div><strong>ページをスキャン</strong><p>表示中のページから、分析に必要なプレーンテキストだけを取得します。</p></section>`
+    }
+
+    <div class="actions">
+      <button id="capture" class="secondary" ${busy ? 'disabled' : ''}>
+        <span class="${state.status === 'capturing' ? 'spinner' : ''}">${state.status === 'capturing' ? '' : '↻'}</span>
+        ${state.capture ? '再取得' : 'ページを取得'}
+      </button>
+      <button id="analyze" ${canAnalyze ? '' : 'disabled'}>
+        <span class="${state.status === 'submitting' ? 'spinner' : ''}">${state.status === 'submitting' ? '' : '✦'}</span>
+        ${state.status === 'submitting' ? '送信中' : 'AIで分析'}
+      </button>
+    </div>
+
+    <div class="privacy">
+      <span aria-hidden="true">◇</span>
+      <p><strong>Privacy guard</strong>フォーム入力、編集領域、HTMLは取得しません。送信はボタン操作時のみ実行されます。</p>
+    </div>
+    <footer>CONNECTED TO <span>${escapeHtml(extensionConfig.webAppUrl)}</span></footer>
   `;
 
   document
@@ -48,25 +176,45 @@ function render(status = '現在のページを確認してから送信できま
     ?.addEventListener('click', () => void handleCapture());
   document
     .querySelector('#analyze')
-    ?.addEventListener('click', handleAnalyzePlaceholder);
+    ?.addEventListener('click', () => void handleAnalyze());
 }
 
 async function handleCapture(): Promise<void> {
-  const message = document.querySelector<HTMLElement>('#message');
-  if (message) message.textContent = 'ページを安全に読み取っています…';
+  state.status = 'capturing';
+  state.message = 'ページ情報を安全に読み取っています…';
+  render();
   try {
-    capturedPage = await captureActiveTab();
-    render('取得内容を確認しました。分析を開始できます。');
+    state.capture = await captureActiveTab(panelTabId);
+    state.status = 'ready';
+    state.message = '取得内容を確認してから分析を開始してください。';
   } catch (error: unknown) {
-    render(
-      error instanceof Error ? error.message : 'ページ取得に失敗しました。',
-    );
+    const needsReconnect =
+      error instanceof ExtensionError &&
+      error.details.diagnosticCode === 'SCRIPT_PERMISSION_DENIED';
+    state.status = needsReconnect ? 'reconnect' : 'error';
+    state.message = needsReconnect
+      ? '別のサイトへ移動したため、現在のページへの読み取り許可が必要です。'
+      : toUserMessage(error);
   }
+  render();
 }
 
-function handleAnalyzePlaceholder(): void {
-  const message = document.querySelector<HTMLElement>('#message');
-  if (message) message.textContent = 'API接続はフェーズ4〜6で有効になります。';
+async function handleAnalyze(): Promise<void> {
+  if (!state.capture) return;
+  state.status = 'submitting';
+  state.message = 'Webアプリへ送信し、分析を準備しています…';
+  render();
+  try {
+    const result = await analyzeCaptureWithTimeout(state.capture);
+    state.status = 'success';
+    state.message = '分析を開始しました。詳細画面を開きます。';
+    render();
+    await openAnalysis(result.analysisId);
+  } catch (error: unknown) {
+    state.status = 'error';
+    state.message = toUserMessage(error);
+    render();
+  }
 }
 
 render();
