@@ -2,7 +2,7 @@
 
 AI Web Scout is a privacy-conscious agent workspace that turns the page currently open in Chrome into structured, actionable insight. The Chrome extension is a small sensor; the Next.js application and bounded AI workflow are the product core.
 
-> Phase 1 foundation: monorepo, web shell, Chrome extension shell, shared contracts, quality tooling, and architecture documentation.
+> Phase 4 complete: foundation, Supabase persistence, mock-first Agent Workspace, and the Chrome Side Panel sensor are implemented.
 
 ## What it solves
 
@@ -68,7 +68,7 @@ pnpm dev
 
 Web: `http://localhost:3000`. Build the extension with `pnpm --filter @ai-web-scout/extension build`, open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `apps/extension/dist`.
 
-For phase 1, the Side Panel preview works locally; API-backed analysis is introduced in later phases.
+The Side Panel can capture, validate, preview, and submit the current page. Follow [docs/phase-4-chrome-extension.md](docs/phase-4-chrome-extension.md) for permissions, environment setup, Chrome loading, and manual checks. The receiving API and AI analysis are introduced in phases 5 and 6.
 
 ## Environment
 
