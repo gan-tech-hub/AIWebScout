@@ -2,7 +2,7 @@
 
 AI Web Scout is a privacy-conscious agent workspace that turns the page currently open in Chrome into structured, actionable insight. The Chrome extension is a small sensor; the Next.js application and bounded AI workflow are the product core.
 
-> Phase 4 complete: foundation, Supabase persistence, mock-first Agent Workspace, and the Chrome Side Panel sensor are implemented.
+> Phase 5 complete: foundation, Supabase persistence, Agent Workspace, Chrome sensor, and the bounded OpenAI agent workflow are implemented.
 
 ## What it solves
 
@@ -68,7 +68,7 @@ pnpm dev
 
 Web: `http://localhost:3000`. Build the extension with `pnpm --filter @ai-web-scout/extension build`, open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `apps/extension/dist`.
 
-The Side Panel can capture, validate, preview, and submit the current page. Follow [docs/phase-4-chrome-extension.md](docs/phase-4-chrome-extension.md) for permissions, environment setup, Chrome loading, and manual checks. The receiving API and AI analysis are introduced in phases 5 and 6.
+The Side Panel can capture, validate, preview, and submit the current page. Follow [docs/phase-4-chrome-extension.md](docs/phase-4-chrome-extension.md) for permissions, environment setup, Chrome loading, and manual checks. The bounded agent design is documented in [docs/phase-5-ai-agent.md](docs/phase-5-ai-agent.md); public API integration follows in phase 6.
 
 ## Environment
 
@@ -87,7 +87,7 @@ pnpm format       # format source files
 
 ## Supabase and OpenAI
 
-Phase 2 provides migrations, typed clients, repository adapters, and owner-only RLS policies. Follow [docs/supabase-setup.md](docs/supabase-setup.md) to create a project, apply the migration, configure keys, and verify policies. See [docs/persistence.md](docs/persistence.md) for the data-access architecture. Phase 5 adds server-only OpenAI integration.
+Phase 2 provides migrations, typed clients, repository adapters, and owner-only RLS policies. Follow [docs/supabase-setup.md](docs/supabase-setup.md) to create a project, apply the migration, configure keys, and verify policies. See [docs/persistence.md](docs/persistence.md) for the data-access architecture. Phase 5 adds server-only OpenAI Responses API integration with Structured Outputs and bounded Tool Calling.
 
 ## Agent design
 
