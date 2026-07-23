@@ -7,6 +7,12 @@ const publicEnvSchema = z.object({
 
 const serverEnvSchema = publicEnvSchema.extend({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  OPENAI_API_KEY: z.string().min(1).optional(),
+  OPENAI_MODEL: z.string().min(1).optional(),
+  AI_MAX_INPUT_CHARS: z.string().optional(),
+  AI_MAX_OUTPUT_TOKENS: z.string().optional(),
+  AI_MAX_TOOL_CALLS: z.string().optional(),
+  AI_TIMEOUT_MS: z.string().optional(),
 });
 
 export type PublicEnv = z.infer<typeof publicEnvSchema>;
