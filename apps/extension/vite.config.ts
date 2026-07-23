@@ -8,6 +8,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         sidepanel: resolve(import.meta.dirname, 'sidepanel.html'),
+        launcher: resolve(import.meta.dirname, 'launcher.html'),
         background: resolve(import.meta.dirname, 'src/background/index.ts'),
       },
       output: {

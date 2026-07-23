@@ -1,10 +1,14 @@
 {
   "manifest_version": 3,
   "name": "AI Web Scout",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "Review the current page and send it to your AI Web Scout workspace.",
   "permissions": ["activeTab", "scripting", "sidePanel"],
+  "host_permissions": ["http://localhost:3000/*"],
   "background": { "service_worker": "background.js", "type": "module" },
-  "action": { "default_title": "Open AI Web Scout" },
+  "action": {
+    "default_title": "Open AI Web Scout",
+    "default_popup": "launcher.html"
+  },
   "side_panel": { "default_path": "sidepanel.html" }
 }
