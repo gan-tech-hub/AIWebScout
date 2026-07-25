@@ -12,8 +12,9 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import Link from 'next/link';
+import type { PageType } from '@ai-web-scout/shared';
 import { AnalysisCard } from '@/features/analyses/analysis-card';
-import { mockAnalyses } from '@/features/analyses/mock-data';
+import type { AnalysisListItem } from '@/features/analyses/types';
 import { Surface } from '@/components/ui/surface';
 
 const stages = [
@@ -39,15 +40,29 @@ const stages = [
   },
 ];
 
-const typeStats = [
-  { label: 'Job', value: 8, color: 'bg-violet-400' },
-  { label: 'Article', value: 6, color: 'bg-cyan-400' },
-  { label: 'GitHub', value: 4, color: 'bg-fuchsia-400' },
-  { label: 'Company', value: 3, color: 'bg-amber-400' },
-  { label: 'General', value: 2, color: 'bg-slate-400' },
+const typeDefinitions: Array<{
+  type: PageType;
+  label: string;
+  color: string;
+}> = [
+  { type: 'job', label: 'Job', color: 'bg-violet-400' },
+  { type: 'article', label: 'Article', color: 'bg-cyan-400' },
+  { type: 'github', label: 'GitHub', color: 'bg-fuchsia-400' },
+  { type: 'company', label: 'Company', color: 'bg-amber-400' },
+  { type: 'general', label: 'General', color: 'bg-slate-400' },
 ];
 
-export function DashboardView() {
+export function DashboardView({ analyses }: { analyses: AnalysisListItem[] }) {
+  const typeStats = typeDefinitions.map((definition) => ({
+    ...definition,
+    value: analyses.filter((item) => item.pageType === definition.type).length,
+  }));
+  const scores = analyses
+    .map((item) => item.recommendationScore)
+    .filter((score): score is number => score !== null);
+  const averageScore = scores.length
+    ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
+    : 0;
   return (
     <div className="space-y-6">
       <header className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
@@ -121,14 +136,16 @@ export function DashboardView() {
                 THIS MONTH
               </span>
             </div>
-            <p className="mt-7 text-4xl font-semibold">23</p>
+            <p className="mt-7 text-4xl font-semibold">{analyses.length}</p>
             <p className="text-muted mt-1 text-sm">分析したページ</p>
             <div className="bg-panel-hover mt-5 flex h-1.5 overflow-hidden rounded-full">
               {typeStats.map((stat) => (
                 <span
                   key={stat.label}
                   className={stat.color}
-                  style={{ width: `${(stat.value / 23) * 100}%` }}
+                  style={{
+                    width: `${analyses.length ? (stat.value / analyses.length) * 100 : 0}%`,
+                  }}
                 />
               ))}
             </div>
@@ -153,13 +170,14 @@ export function DashboardView() {
               </span>
             </div>
             <p className="mt-7 text-4xl font-semibold">
-              84<span className="text-muted text-base">/100</span>
+              {averageScore}
+              <span className="text-muted text-base">/100</span>
             </p>
             <p className="text-muted mt-1 text-sm">平均おすすめ度</p>
             <div className="bg-panel-hover mt-4 h-1.5 rounded-full">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: '84%' }}
+                animate={{ width: `${averageScore}%` }}
                 transition={{ duration: 0.8 }}
                 className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400"
               />
@@ -184,9 +202,14 @@ export function DashboardView() {
           </Link>
         </div>
         <div className="grid gap-3 xl:grid-cols-2">
-          {mockAnalyses.slice(0, 4).map((item, index) => (
+          {analyses.slice(0, 4).map((item, index) => (
             <AnalysisCard key={item.id} item={item} index={index} />
           ))}
+          {analyses.length === 0 && (
+            <Surface className="text-muted border-dashed p-6 text-sm xl:col-span-2">
+              Chrome拡張から最初のページを分析すると、ここに結果が表示されます。
+            </Surface>
+          )}
         </div>
       </section>
 

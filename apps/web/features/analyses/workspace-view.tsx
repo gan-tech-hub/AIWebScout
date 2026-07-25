@@ -18,22 +18,25 @@ import {
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { PageTypeBadge, StatusBadge } from '@/components/ui/status-badge';
 import { Surface } from '@/components/ui/surface';
 import { cn } from '@/lib/utils';
-import { demoWorkspace } from './mock-data';
-import type { WorkspaceStep } from './types';
+import type { WorkspaceAnalysis, WorkspaceStep } from './types';
 
 const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
   dateStyle: 'medium',
   timeStyle: 'short',
 });
 
-function CaptureInspector() {
-  const page = demoWorkspace.capturedPage;
+function CaptureInspector({
+  page,
+}: {
+  page: WorkspaceAnalysis['capturedPage'];
+}) {
   const [expanded, setExpanded] = useState(false);
   return (
     <Surface className="h-fit overflow-hidden">
@@ -108,11 +111,13 @@ function CaptureInspector() {
 function StepNode({
   step,
   index,
+  isLast,
   selected,
   onSelect,
 }: {
   step: WorkspaceStep;
   index: number;
+  isLast: boolean;
   selected: boolean;
   onSelect: () => void;
 }) {
@@ -121,7 +126,7 @@ function StepNode({
       <div
         className={cn(
           'bg-line absolute left-[21px] top-11 h-[calc(100%-28px)] w-px',
-          index === demoWorkspace.steps.length - 1 && 'hidden',
+          isLast && 'hidden',
         )}
       >
         <span
@@ -234,14 +239,13 @@ function StepDetails({ step }: { step: WorkspaceStep }) {
   );
 }
 
-function AgentCanvas() {
-  const [selectedId, setSelectedId] = useState('analysis');
+function AgentCanvas({ steps }: { steps: WorkspaceStep[] }) {
+  const [selectedId, setSelectedId] = useState(steps[0]?.id ?? '');
   const selected = useMemo(
-    () =>
-      demoWorkspace.steps.find((step) => step.id === selectedId) ??
-      demoWorkspace.steps[0]!,
-    [selectedId],
+    () => steps.find((step) => step.id === selectedId) ?? steps[0],
+    [selectedId, steps],
   );
+  const completed = steps.filter((step) => step.status === 'completed').length;
   return (
     <Surface className="relative overflow-hidden p-4 sm:p-5">
       <div className="absolute inset-0 opacity-30 [background-image:radial-gradient(hsl(var(--ink)/.12)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:linear-gradient(to_bottom,black,transparent)]" />
@@ -256,21 +260,22 @@ function AgentCanvas() {
             </p>
           </div>
           <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-medium text-emerald-500">
-            9 / 9 completed
+            {completed} / {steps.length} completed
           </span>
         </div>
         <div className="mt-6">
-          {demoWorkspace.steps.map((step, index) => (
+          {steps.map((step, index) => (
             <StepNode
               key={step.id}
               step={step}
               index={index}
+              isLast={index === steps.length - 1}
               selected={selectedId === step.id}
               onSelect={() => setSelectedId(step.id)}
             />
           ))}
         </div>
-        <StepDetails step={selected} />
+        {selected && <StepDetails step={selected} />}
       </div>
     </Surface>
   );
@@ -329,8 +334,9 @@ function InsightSection({
   );
 }
 
-function FinalInsight() {
-  const { item, insight } = demoWorkspace;
+function FinalInsight({ workspace }: { workspace: WorkspaceAnalysis }) {
+  const { item, insight } = workspace;
+  const recommendationScore = item.recommendationScore ?? 0;
   return (
     <Surface className="h-fit overflow-hidden">
       <div className="border-line relative overflow-hidden border-b p-5">
@@ -348,7 +354,7 @@ function FinalInsight() {
             className="mt-6 flex items-end gap-3"
           >
             <span className="text-6xl font-semibold tracking-tighter">
-              {item.recommendationScore}
+              {recommendationScore}
             </span>
             <span className="text-muted mb-2 text-xs">
               / 100
@@ -359,7 +365,7 @@ function FinalInsight() {
           <div className="bg-panel-hover mt-4 h-1.5 overflow-hidden rounded-full">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${item.recommendationScore}%` }}
+              animate={{ width: `${recommendationScore}%` }}
               transition={{ duration: 1, delay: 0.2 }}
               className="h-full rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-400 to-cyan-400"
             />
@@ -430,8 +436,15 @@ function FinalInsight() {
   );
 }
 
-export function WorkspaceView() {
+export function WorkspaceView({ workspace }: { workspace: WorkspaceAnalysis }) {
+  const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
+  useEffect(() => {
+    if (!['pending', 'running'].includes(workspace.item.status)) return;
+    const timer = window.setInterval(() => router.refresh(), 1_500);
+    return () => window.clearInterval(timer);
+  }, [router, workspace.item.status]);
   return (
     <div>
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -443,11 +456,11 @@ export function WorkspaceView() {
             <ArrowLeft className="size-3.5" /> 分析履歴へ戻る
           </Link>
           <div className="flex flex-wrap items-center gap-2">
-            <PageTypeBadge pageType={demoWorkspace.item.pageType} />
-            <StatusBadge status={demoWorkspace.item.status} />
+            <PageTypeBadge pageType={workspace.item.pageType} />
+            <StatusBadge status={workspace.item.status} />
           </div>
           <h1 className="mt-3 max-w-3xl text-2xl font-semibold tracking-tight sm:text-3xl">
-            {demoWorkspace.item.title}
+            {workspace.item.title}
           </h1>
           <p className="text-muted mt-2 text-xs">
             AIがページ情報を読み取り、判断を組み立てた流れを確認できます。
@@ -455,12 +468,32 @@ export function WorkspaceView() {
         </div>
         <Button
           variant="secondary"
+          disabled={retrying}
           onClick={() => {
-            setMessage('再分析リクエストを受け付けました（MVPモック）');
-            window.setTimeout(() => setMessage(null), 2800);
+            void (async () => {
+              setRetrying(true);
+              const response = await fetch(
+                `/api/analyses/${encodeURIComponent(workspace.item.id)}/retry`,
+                { method: 'POST' },
+              );
+              const body = (await response.json()) as {
+                success: boolean;
+                data?: { analysisId: string };
+                error?: { message: string };
+              };
+              setRetrying(false);
+              if (body.success && body.data) {
+                router.push(`/analyses/${body.data.analysisId}`);
+                return;
+              }
+              setMessage(
+                body.error?.message ?? '再分析を開始できませんでした。',
+              );
+            })();
           }}
         >
-          <RefreshCw className="size-4" /> 再分析
+          <RefreshCw className={cn('size-4', retrying && 'animate-spin')} />{' '}
+          再分析
         </Button>
       </header>
       {message && (
@@ -473,9 +506,9 @@ export function WorkspaceView() {
         </motion.div>
       )}
       <div className="mt-6 grid items-start gap-4 xl:grid-cols-[minmax(230px,.65fr)_minmax(380px,1.05fr)_minmax(300px,.8fr)]">
-        <CaptureInspector />
-        <AgentCanvas />
-        <FinalInsight />
+        <CaptureInspector page={workspace.capturedPage} />
+        <AgentCanvas steps={workspace.steps} />
+        <FinalInsight workspace={workspace} />
       </div>
     </div>
   );

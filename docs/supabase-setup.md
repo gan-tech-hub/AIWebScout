@@ -69,7 +69,7 @@ Dashboardの**Authentication → URL Configuration**で次を設定する。
 - Site URL: `http://localhost:3000`
 - Redirect URL: `http://localhost:3000/**`
 
-MVPの認証方式はEmail Magic Linkを予定している。Auth画面とcallbackは後続フェーズで実装する。
+MVPの認証方式はEmail/Passwordとする。`/login`から登録・ログインでき、メール確認を有効にしている場合は確認後にログインする。
 
 ## 6. 型を同期する
 

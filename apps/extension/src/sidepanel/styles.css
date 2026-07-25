@@ -424,6 +424,20 @@ button:disabled {
   opacity: 0.36;
 }
 
+.inline-action {
+  width: auto;
+  min-height: 34px;
+  margin-top: 12px;
+  padding: 0 14px;
+  border: 1px solid #70f3ff57;
+  border-radius: 10px;
+  color: #aaf7ff;
+  background: #70f3ff1a;
+  box-shadow: none;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 button.secondary {
   border: 1px solid #ffffff18;
   color: #cbc7d6;

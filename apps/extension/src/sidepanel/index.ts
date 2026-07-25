@@ -13,6 +13,7 @@ type ViewStatus =
   | 'submitting'
   | 'success'
   | 'error'
+  | 'auth'
   | 'reconnect';
 
 type ViewState = {
@@ -67,6 +68,8 @@ function statusLabel(): string {
       return 'Sent';
     case 'error':
       return 'Needs attention';
+    case 'auth':
+      return 'Sign in required';
     case 'reconnect':
       return 'Reconnect required';
     case 'ready':
@@ -144,6 +147,11 @@ function render(): void {
               </div>`
             : ''
         }
+        ${
+          state.status === 'auth'
+            ? `<button id="open-login" class="inline-action">Webアプリでログイン</button>`
+            : ''
+        }
       </div>
     </section>
 
@@ -177,6 +185,9 @@ function render(): void {
   document
     .querySelector('#analyze')
     ?.addEventListener('click', () => void handleAnalyze());
+  document.querySelector('#open-login')?.addEventListener('click', () => {
+    void chrome.tabs.create({ url: `${extensionConfig.webAppUrl}/login` });
+  });
 }
 
 async function handleCapture(): Promise<void> {
@@ -211,7 +222,10 @@ async function handleAnalyze(): Promise<void> {
     render();
     await openAnalysis(result.analysisId);
   } catch (error: unknown) {
-    state.status = 'error';
+    state.status =
+      error instanceof ExtensionError && error.code === 'UNAUTHORIZED'
+        ? 'auth'
+        : 'error';
     state.message = toUserMessage(error);
     render();
   }

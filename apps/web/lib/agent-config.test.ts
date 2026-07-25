@@ -25,4 +25,13 @@ describe('getAgentConfig', () => {
       getAgentConfig({ ...baseEnv, AI_MAX_TOOL_CALLS: '99' }),
     ).toThrow();
   });
+
+  it('rejects the model placeholder from the environment template', () => {
+    expect(() =>
+      getAgentConfig({
+        ...baseEnv,
+        OPENAI_MODEL: 'your-structured-output-capable-model',
+      }),
+    ).toThrow('OPENAI_MODELを実際に利用できるモデルIDへ変更してください。');
+  });
 });
