@@ -1,7 +1,7 @@
 import { after, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { SupabaseAnalysisRepository } from '@/infrastructure/repositories';
-import { createAnalysisAgent } from '@/services/ai';
+import { createAnalysisAgent, logAnalysisFailure } from '@/services/ai';
 import {
   apiFailure,
   apiSuccess,
@@ -56,8 +56,11 @@ async function handlePost(
         capturedPageId: source.capturedPage.id,
         userId: user.id,
       });
-    } catch {
-      // Safe failure state is persisted by the use case.
+    } catch (error: unknown) {
+      logAnalysisFailure(error, {
+        analysisId: analysis.id,
+        capturedPageId: source.capturedPage.id,
+      });
     }
   });
   return applyCors(

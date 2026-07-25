@@ -26,6 +26,15 @@ describe('capturePageInputSchema', () => {
     ).toThrow();
   });
 
+  it('rejects URLs containing embedded credentials', () => {
+    expect(() =>
+      capturePageInputSchema.parse({
+        ...validCapture,
+        url: 'https://user:password@example.com/private',
+      }),
+    ).toThrow();
+  });
+
   it('accepts an empty page body', () => {
     expect(
       capturePageInputSchema.parse({ ...validCapture, pageText: '' }).pageText,

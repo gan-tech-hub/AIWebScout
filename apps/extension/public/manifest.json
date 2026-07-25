@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI Web Scout",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Review the current page and send it to your AI Web Scout workspace.",
   "permissions": ["activeTab", "scripting", "sidePanel"],
   "host_permissions": ["http://localhost:3000/*"],

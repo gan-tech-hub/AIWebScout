@@ -19,24 +19,31 @@ export function LoginForm() {
     event.preventDefault();
     setLoading(true);
     setMessage('');
-    const client = createBrowserSupabaseClient();
-    const result =
-      mode === 'login'
-        ? await client.auth.signInWithPassword({ email, password })
-        : await client.auth.signUp({ email, password });
-    setLoading(false);
-    if (result.error) {
-      setMessage(result.error.message);
-      return;
-    }
-    if (mode === 'signup' && !result.data.session) {
+    try {
+      const client = createBrowserSupabaseClient();
+      const result =
+        mode === 'login'
+          ? await client.auth.signInWithPassword({ email, password })
+          : await client.auth.signUp({ email, password });
+      if (result.error) {
+        setMessage(result.error.message);
+        return;
+      }
+      if (mode === 'signup' && !result.data.session) {
+        setMessage(
+          '確認メールを送信しました。メール確認後にログインしてください。',
+        );
+        return;
+      }
+      router.replace('/');
+      router.refresh();
+    } catch {
       setMessage(
-        '確認メールを送信しました。メール確認後にログインしてください。',
+        '認証サービスへ接続できませんでした。通信状態を確認して再度お試しください。',
       );
-      return;
+    } finally {
+      setLoading(false);
     }
-    router.replace('/');
-    router.refresh();
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {

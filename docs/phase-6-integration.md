@@ -18,6 +18,7 @@ Chrome拡張で取得したページ情報を、認証済みユーザーとし�
 ## 認証とCORS
 
 - Web画面とRoute HandlerはSupabaseユーザーセッションを必須とする。
+- Supabase SSR Middlewareは期限が近いセッションCookieを更新し、ページとAPI側の認証判定を補助する。
 - Route HandlerはCookie認証に加え、将来のクライアント用にBearer tokenも受け付ける。
 - Chrome拡張のOriginは`CHROME_EXTENSION_ORIGINS`の明示的な許可リストだけを反映する。
 - `*`とcredentialの併用は行わない。
@@ -70,7 +71,7 @@ CHROME_EXTENSION_ORIGINS=chrome-extension://ここに拡張ID
 
 - `401`: Webアプリへログインし直す。
 - CORSエラー: 拡張IDと`CHROME_EXTENSION_ORIGINS`が一致しているか確認し、Webサーバーを再起動する。
-- 分析失敗: Agent Workspaceの失敗ステップとサーバーログを確認する。APIキーやプロバイダー詳細は画面へ表示しない。
+- 分析失敗: Agent Workspaceの失敗ステップとサーバーログの安全なエラーコードを確認する。APIキー、ページ本文、プロバイダー詳細は画面・ログへ表示しない。
 - URL切り替え後の取得失敗: サイドパネルの接続更新フローで現在ページへの権限を再付与する。
 
 ## MVP上の制約
@@ -78,3 +79,4 @@ CHROME_EXTENSION_ORIGINS=chrome-extension://ここに拡張ID
 - 非同期処理はNext.jsの`after()`で実行する。長時間処理、再試行保証、分散実行が必要になった時点でジョブキューへ分離する。
 - 一覧表示はMVPの件数を想定したRepository取得であり、大量データ対応時にページネーションと集約クエリを追加する。
 - リアルタイム表示は短いポーリングで実現する。将来はSupabase Realtimeまたはジョブイベントへ置換できる。
+- `GET /analyses/{id}`が約1.5秒ごとに表示されるのは状態確認であり、AI処理の重複実行ではない。

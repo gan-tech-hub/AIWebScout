@@ -478,23 +478,31 @@ export function WorkspaceView({ workspace }: { workspace: WorkspaceAnalysis }) {
           onClick={() => {
             void (async () => {
               setRetrying(true);
-              const response = await fetch(
-                `/api/analyses/${encodeURIComponent(workspace.item.id)}/retry`,
-                { method: 'POST' },
-              );
-              const body = (await response.json()) as {
-                success: boolean;
-                data?: { analysisId: string };
-                error?: { message: string };
-              };
-              setRetrying(false);
-              if (body.success && body.data) {
-                router.push(`/analyses/${body.data.analysisId}`);
-                return;
+              setMessage(null);
+              try {
+                const response = await fetch(
+                  `/api/analyses/${encodeURIComponent(workspace.item.id)}/retry`,
+                  { method: 'POST' },
+                );
+                const body = (await response.json()) as {
+                  success: boolean;
+                  data?: { analysisId: string };
+                  error?: { message: string };
+                };
+                if (response.ok && body.success && body.data) {
+                  router.push(`/analyses/${body.data.analysisId}`);
+                  return;
+                }
+                setMessage(
+                  body.error?.message ?? '再分析を開始できませんでした。',
+                );
+              } catch {
+                setMessage(
+                  '再分析サービスへ接続できませんでした。通信状態を確認して再度お試しください。',
+                );
+              } finally {
+                setRetrying(false);
               }
-              setMessage(
-                body.error?.message ?? '再分析を開始できませんでした。',
-              );
             })();
           }}
         >

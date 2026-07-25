@@ -6,8 +6,20 @@ const httpUrlSchema = z
   .string()
   .url()
   .max(CAPTURE_LIMITS.url)
-  .refine((value) => ['http:', 'https:'].includes(new URL(value).protocol), {
-    message: 'HTTPまたはHTTPSのURLを指定してください。',
+  .superRefine((value, context) => {
+    const url = new URL(value);
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'HTTPまたはHTTPSのURLを指定してください。',
+      });
+    }
+    if (url.username || url.password) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: '認証情報を含むURLは指定できません。',
+      });
+    }
   });
 
 export const capturePageInputSchema = z.object({
