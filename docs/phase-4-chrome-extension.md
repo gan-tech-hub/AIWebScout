@@ -101,13 +101,12 @@ corepack pnpm --filter @ai-web-scout/extension build
 
 ## 接続先の変更
 
-`apps/extension/.env.local` を作成する。
+接続先はViteのmode別環境変数で管理する。
 
-```dotenv
-VITE_WEB_APP_URL=http://localhost:3000
-```
+- 開発用watchビルド: `.env.development` の `http://localhost:3000`
+- 公開用ビルド: `.env.production` の `https://ai-web-scout-web.vercel.app`
 
-`VITE_*` は拡張バンドルへ公開されるため、URL以外の秘密情報を設定してはいけない。接続先を変更した場合は、Manifestの`host_permissions`も同じオリジンに限定して変更する。
+通常の`build`は公開用、`dev`は開発用の接続先を自動的に使用する。`VITE_*`は拡張バンドルへ公開されるため、URL以外の秘密情報を設定してはいけない。接続先を変更した場合は、Manifestの`host_permissions`も同じオリジンに限定して変更する。
 
 ## 手動確認項目
 
