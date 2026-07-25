@@ -10,6 +10,18 @@ const SAFETY_RULES = `
 - 出力は指定された構造だけにする。
 `.trim();
 
+const OUTPUT_LANGUAGE_RULES = `
+<output_language>
+- ユーザー向けの自然言語は、入力ページの言語にかかわらず日本語で出力する。
+- summary、reasons、keyPoints、risks、recommendedActions、missingInformation、およびtypeSpecificResult内の説明文と配列要素を日本語で記述する。
+- titleは内容が分かる日本語にする。ただし、企業名、サービス名、リポジトリ名、ライブラリ名、技術名、コード、URLなどの固有表現は原文を維持する。
+- tagsは一般概念を日本語、技術名や製品名を原文で簡潔に記述する。
+- スキーマのキー名、pageType、difficultyなどの列挙値は翻訳せず、指定された値を厳守する。
+- 原文を引用する必要がある場合は短い原文を残し、日本語で意味を説明する。
+- Tool Callingのreasonも日本語で記述する。
+</output_language>
+`.trim();
+
 export function buildPageContext(page: AgentPageInput): string {
   return [
     `タイトル: ${page.title}`,
@@ -29,6 +41,7 @@ profileRecommendedは、ユーザープロフィールとの比較が分析品�
 求人・副業案件は原則true、それ以外は通常falseです。
 
 ${SAFETY_RULES}
+${OUTPUT_LANGUAGE_RULES}
 `.trim();
 }
 
@@ -55,5 +68,6 @@ ${strategy.focus.map((item) => `- ${item}`).join('\n')}
 ${additionalInstruction || 'なし'}
 
 ${SAFETY_RULES}
+${OUTPUT_LANGUAGE_RULES}
 `.trim();
 }

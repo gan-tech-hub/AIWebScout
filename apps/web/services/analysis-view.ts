@@ -7,23 +7,7 @@ import type {
   AnalysisListItem,
   WorkspaceAnalysis,
 } from '@/features/analyses/types';
-
-function typeSpecificEntries(
-  value: ReturnType<typeof analysisResultSchema.safeParse>,
-): Array<{ label: string; value: string }> {
-  if (!value.success) return [];
-  const data = value.data.typeSpecificResult.data;
-  return Object.entries(data)
-    .slice(0, 8)
-    .map(([label, entry]) => ({
-      label,
-      value: Array.isArray(entry)
-        ? entry.join(' / ') || '—'
-        : entry === null
-          ? '—'
-          : String(entry),
-    }));
-}
+import { toTypeSpecificEntries } from '@/features/analyses/type-specific-presentation';
 
 export function toAnalysisListItem(details: AnalysisDetails): AnalysisListItem {
   return {
@@ -79,7 +63,9 @@ export function toWorkspaceAnalysis(
         .slice(0, 6),
       missingInformation: parsed.success ? parsed.data.missingInformation : [],
       confidence: parsed.success ? parsed.data.confidence : 0,
-      typeSpecific: typeSpecificEntries(parsed),
+      typeSpecific: parsed.success
+        ? toTypeSpecificEntries(parsed.data.typeSpecificResult)
+        : [],
     },
   };
 }

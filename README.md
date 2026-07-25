@@ -68,7 +68,7 @@ pnpm dev
 
 Web: `http://localhost:3000`. Build the extension with `pnpm --filter @ai-web-scout/extension build`, open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `apps/extension/dist`.
 
-The Side Panel can capture, validate, preview, and submit the current page. Follow [docs/phase-4-chrome-extension.md](docs/phase-4-chrome-extension.md) for permissions and Chrome loading. The bounded agent design is documented in [docs/phase-5-ai-agent.md](docs/phase-5-ai-agent.md), and the authenticated end-to-end setup and checks are in [docs/phase-6-integration.md](docs/phase-6-integration.md).
+The Side Panel can capture, validate, preview, and submit the current page. Follow [docs/phase-4-chrome-extension.md](docs/phase-4-chrome-extension.md) for permissions and Chrome loading. The bounded agent design is documented in [docs/phase-5-ai-agent.md](docs/phase-5-ai-agent.md), and the authenticated end-to-end setup and checks are in [docs/phase-6-integration.md](docs/phase-6-integration.md). Phase 7 polish decisions and verification targets are tracked in [docs/phase-7-polish.md](docs/phase-7-polish.md).
 
 ## Environment
 
