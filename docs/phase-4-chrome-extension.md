@@ -76,7 +76,7 @@ Side Panelから`chrome.action.openPopup()`でPopupを開いても、ツール�
 
 応答もZodで検証する。成功後は `/analyses/{analysisId}` を新しいタブで開く。通信タイムアウト、ネットワーク障害、認証エラー、APIエラー、不正な応答を別々に扱い、内部エラーの詳細を画面へ露出しない。
 
-フェーズ4時点ではRoute Handlerが未実装のため、「AIで分析」を押すと接続または応答エラーが安全に表示される。実APIとの結合はフェーズ6で行う。
+フェーズ6で認証付きRoute Handlerと結合済みである。CORS許可リスト、ログイン、分析開始から詳細画面への遷移は[phase-6-integration.md](phase-6-integration.md)を参照する。
 
 ## ビルドとChromeへの読み込み
 

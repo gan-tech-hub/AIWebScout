@@ -2,7 +2,7 @@
 
 AI Web Scout is a privacy-conscious agent workspace that turns the page currently open in Chrome into structured, actionable insight. The Chrome extension is a small sensor; the Next.js application and bounded AI workflow are the product core.
 
-> Phase 5 complete: foundation, Supabase persistence, Agent Workspace, Chrome sensor, and the bounded OpenAI agent workflow are implemented.
+> Phase 6 complete: the authenticated Chrome-to-Web capture flow, asynchronous AI analysis, persisted Agent Workspace updates, history, profile, and retry flow are integrated.
 
 ## What it solves
 
@@ -68,7 +68,7 @@ pnpm dev
 
 Web: `http://localhost:3000`. Build the extension with `pnpm --filter @ai-web-scout/extension build`, open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select `apps/extension/dist`.
 
-The Side Panel can capture, validate, preview, and submit the current page. Follow [docs/phase-4-chrome-extension.md](docs/phase-4-chrome-extension.md) for permissions, environment setup, Chrome loading, and manual checks. The bounded agent design is documented in [docs/phase-5-ai-agent.md](docs/phase-5-ai-agent.md); public API integration follows in phase 6.
+The Side Panel can capture, validate, preview, and submit the current page. Follow [docs/phase-4-chrome-extension.md](docs/phase-4-chrome-extension.md) for permissions and Chrome loading. The bounded agent design is documented in [docs/phase-5-ai-agent.md](docs/phase-5-ai-agent.md), and the authenticated end-to-end setup and checks are in [docs/phase-6-integration.md](docs/phase-6-integration.md).
 
 ## Environment
 
@@ -87,7 +87,7 @@ pnpm format       # format source files
 
 ## Supabase and OpenAI
 
-Phase 2 provides migrations, typed clients, repository adapters, and owner-only RLS policies. Follow [docs/supabase-setup.md](docs/supabase-setup.md) to create a project, apply the migration, configure keys, and verify policies. See [docs/persistence.md](docs/persistence.md) for the data-access architecture. Phase 5 adds server-only OpenAI Responses API integration with Structured Outputs and bounded Tool Calling.
+Phase 2 provides migrations, typed clients, repository adapters, and owner-only RLS policies. Follow [docs/supabase-setup.md](docs/supabase-setup.md) to create a project, apply the migration, configure keys, and verify policies. See [docs/persistence.md](docs/persistence.md) for the data-access architecture. Phase 5 adds server-only OpenAI Responses API integration with Structured Outputs and bounded Tool Calling; phase 6 connects it to authenticated Route Handlers and the live UI.
 
 ## Agent design
 
@@ -112,5 +112,5 @@ Autonomous browsing, application submission, external search, GitHub/Gmail APIs,
 3. Mock-first product UI and Agent Workspace
 4. Chrome capture and authenticated delivery
 5. Structured OpenAI workflow and step persistence
-6. End-to-end integration and resilience
+6. Authenticated Chrome/Web integration, live status polling, and retry
 7. Tests, setup polish, and portfolio release

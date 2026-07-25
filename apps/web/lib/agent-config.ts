@@ -6,10 +6,16 @@ const boundedInteger = (minimum: number, maximum: number, fallback: number) =>
 
 const agentConfigSchema = z.object({
   apiKey: z.string().min(1, 'OPENAI_API_KEYが設定されていません。'),
-  model: z.string().min(1, 'OPENAI_MODELが設定されていません。'),
+  model: z
+    .string()
+    .min(1, 'OPENAI_MODELが設定されていません。')
+    .refine(
+      (value) => value !== 'your-structured-output-capable-model',
+      'OPENAI_MODELを実際に利用できるモデルIDへ変更してください。',
+    ),
   maxInputChars: boundedInteger(1_000, 50_000, 50_000),
   maxOutputTokens: boundedInteger(500, 10_000, 3_000),
-  maxToolCalls: boundedInteger(0, 5, 1),
+  maxToolCalls: boundedInteger(0, 1, 1),
   timeoutMs: boundedInteger(5_000, 120_000, 45_000),
 });
 

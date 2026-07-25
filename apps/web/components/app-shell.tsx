@@ -14,6 +14,7 @@ import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { ThemeToggle } from './theme-toggle';
+import { SignOutButton } from './sign-out-button';
 import { cn } from '@/lib/utils';
 
 const navigation = [
@@ -93,6 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <SignOutButton />
             <button
               onClick={() => setMobileOpen(true)}
               aria-label="メニューを開く"

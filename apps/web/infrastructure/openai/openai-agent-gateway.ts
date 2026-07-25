@@ -140,6 +140,7 @@ export class OpenAiAgentGateway implements AiAgentGateway {
           input: buildPageContext(request.page),
           max_output_tokens: this.config.maxOutputTokens,
           max_tool_calls: this.config.maxToolCalls,
+          parallel_tool_calls: false,
           tools: this.config.maxToolCalls > 0 ? [profileTool] : [],
           text: {
             format: zodTextFormat(analysisResultSchema, 'page_analysis'),
@@ -201,6 +202,7 @@ export class OpenAiAgentGateway implements AiAgentGateway {
           previous_response_id: first.id,
           input: outputs,
           max_output_tokens: this.config.maxOutputTokens,
+          parallel_tool_calls: false,
           tools: [profileTool],
           tool_choice: 'none',
           text: {

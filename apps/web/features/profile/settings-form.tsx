@@ -8,19 +8,18 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Surface } from '@/components/ui/surface';
+import type { UserProfile } from '@/domain/models';
 import { profileFormSchema, type ProfileFormValues } from './profile-schema';
 
-const defaults: ProfileFormValues = {
-  displayName: 'Gan',
-  bio: 'フルスタック開発とAIアプリケーション設計に取り組んでいます。',
-  skills: 'TypeScript, Next.js, React, Supabase, Python, OpenAI API',
-  desiredConditions:
-    '新規プロダクト開発、技術選定から関われる案件、長期継続を希望',
-  desiredHourlyRate: 6000,
-  availableHours: 20,
+const fallbackDefaults: ProfileFormValues = {
+  displayName: '',
+  bio: '',
+  skills: '',
+  desiredConditions: '',
+  desiredHourlyRate: 0,
+  availableHours: 1,
   preferredWorkStyle: 'remote',
-  analysisInstruction:
-    '学習価値とキャリア上の価値を重視し、懸念点は率直に指摘してください。',
+  analysisInstruction: '',
 };
 const fieldClass =
   'mt-2 w-full rounded-xl border border-line bg-panel-strong px-3.5 py-3 text-sm text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/50 focus:ring-2 focus:ring-accent/15';
@@ -31,17 +30,65 @@ function FieldError({ message }: { message: string | undefined }) {
   ) : null;
 }
 
-export function SettingsForm() {
+function defaultsFromProfile(profile: UserProfile | null): ProfileFormValues {
+  if (!profile) return fallbackDefaults;
+  return {
+    displayName: profile.displayName,
+    bio: profile.bio,
+    skills: profile.skills.join(', '),
+    desiredConditions:
+      typeof profile.desiredConditions.text === 'string'
+        ? profile.desiredConditions.text
+        : JSON.stringify(profile.desiredConditions),
+    desiredHourlyRate: profile.desiredHourlyRate ?? 0,
+    availableHours: profile.availableHours ?? 1,
+    preferredWorkStyle: ['remote', 'hybrid', 'office', 'flexible'].includes(
+      profile.preferredWorkStyle,
+    )
+      ? (profile.preferredWorkStyle as ProfileFormValues['preferredWorkStyle'])
+      : 'flexible',
+    analysisInstruction: profile.analysisInstruction,
+  };
+}
+
+export function SettingsForm({ profile }: { profile: UserProfile | null }) {
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: defaults,
+    defaultValues: defaultsFromProfile(profile),
   });
-  function onSubmit() {
+  async function onSubmit(values: ProfileFormValues) {
+    setSaveError('');
+    const response = await fetch('/api/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        displayName: values.displayName,
+        bio: values.bio,
+        skills: values.skills
+          .split(',')
+          .map((skill) => skill.trim())
+          .filter(Boolean),
+        desiredConditions: { text: values.desiredConditions },
+        desiredHourlyRate: values.desiredHourlyRate,
+        availableHours: values.availableHours,
+        preferredWorkStyle: values.preferredWorkStyle,
+        analysisInstruction: values.analysisInstruction,
+      }),
+    });
+    const body = (await response.json()) as {
+      success: boolean;
+      error?: { message: string };
+    };
+    if (!body.success) {
+      setSaveError(body.error?.message ?? '設定を保存できませんでした。');
+      return;
+    }
     setSaved(true);
     window.setTimeout(() => setSaved(false), 2800);
   }
@@ -196,8 +243,13 @@ export function SettingsForm() {
               {isDirty ? '変更を保存' : 'プロフィールを保存'}
             </Button>
             <p className="text-muted mt-3 text-center text-[10px]">
-              フェーズ3ではブラウザ内のモック保存です
+              Supabaseへ安全に保存されます
             </p>
+            {saveError && (
+              <p className="mt-3 text-center text-xs text-rose-500">
+                {saveError}
+              </p>
+            )}
           </Surface>
           {saved && (
             <motion.div
