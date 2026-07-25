@@ -54,6 +54,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.0.1
         version: 5.4.0(react-hook-form@7.82.0(react@19.2.7))
+      '@next/env':
+        specifier: 15.5.20
+        version: 15.5.20
       '@supabase/ssr':
         specifier: 0.12.3
         version: 0.12.3(@supabase/supabase-js@2.110.7)

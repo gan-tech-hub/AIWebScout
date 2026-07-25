@@ -4,3 +4,4 @@ export * from './schemas/agent';
 export * from './schemas/api';
 export * from './schemas/capture';
 export * from './schemas/common';
+export * from './schemas/profile';

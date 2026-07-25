@@ -108,8 +108,15 @@ describe('OpenAiAgentGateway', () => {
     ]);
     expect(response.usage.totalTokens).toBe(25);
     expect(parse).toHaveBeenCalledTimes(2);
+    expect(parse.mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({
+        max_tool_calls: 1,
+        parallel_tool_calls: false,
+      }),
+    );
     expect(parse.mock.calls[1]?.[0]).toEqual(
       expect.objectContaining({
+        parallel_tool_calls: false,
         previous_response_id: 'response-1',
         tool_choice: 'none',
       }),

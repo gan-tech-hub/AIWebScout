@@ -7,8 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Surface } from '@/components/ui/surface';
 import { AnalysisCard } from './analysis-card';
 import { filterAnalyses } from './filter-analyses';
-import { mockAnalyses } from './mock-data';
-import type { AnalysisFilters } from './types';
+import type { AnalysisFilters, AnalysisListItem } from './types';
 
 const initialFilters: AnalysisFilters = {
   query: '',
@@ -19,11 +18,11 @@ const initialFilters: AnalysisFilters = {
 const selectClass =
   'h-11 rounded-xl border border-line bg-panel-strong px-3 text-xs text-ink outline-none transition focus:border-accent/50 focus:ring-2 focus:ring-accent/15';
 
-export function HistoryView() {
+export function HistoryView({ analyses }: { analyses: AnalysisListItem[] }) {
   const [filters, setFilters] = useState(initialFilters);
   const results = useMemo(
-    () => filterAnalyses(mockAnalyses, filters),
-    [filters],
+    () => filterAnalyses(analyses, filters),
+    [analyses, filters],
   );
   const hasFilters =
     filters.query ||
@@ -48,7 +47,7 @@ export function HistoryView() {
           <span className="text-ink text-2xl font-semibold">
             {results.length}
           </span>{' '}
-          / {mockAnalyses.length} results
+          / {analyses.length} results
         </div>
       </header>
       <Surface className="mt-7 p-4">

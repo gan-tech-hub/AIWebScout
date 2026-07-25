@@ -57,7 +57,7 @@ flowchart LR
 
 ## Tool Calling
 
-MVPで許可するツールは `load_user_profile` のみとする。
+MVPで許可するツールは `load_user_profile` のみとする。ツール呼び出しは直列かつ最大1回に固定し、同一分析内での重複実行を許可しない。
 
 - JSON Schemaがstrictな引数だけを受け付ける。
 - ツール名はallowlistで照合する。
@@ -92,10 +92,10 @@ MVPで許可するツールは `load_user_profile` のみとする。
 | ---------------------- | -----: | ------------- |
 | `AI_MAX_INPUT_CHARS`   |  50000 | 1,000〜50,000 |
 | `AI_MAX_OUTPUT_TOKENS` |   3000 | 500〜10,000   |
-| `AI_MAX_TOOL_CALLS`    |      1 | 0〜5          |
+| `AI_MAX_TOOL_CALLS`    |      1 | 0〜1          |
 | `AI_TIMEOUT_MS`        |  45000 | 5〜120秒      |
 
-`OPENAI_API_KEY`と`OPENAI_MODEL`はサーバー専用であり、`NEXT_PUBLIC_*`やChrome拡張へ含めない。モデル名は環境変数で差し替え、Application層へ固定しない。
+`OPENAI_API_KEY`と`OPENAI_MODEL`はサーバー専用であり、`NEXT_PUBLIC_*`やChrome拡張へ含めない。MVPの設定例はResponses APIとStructured Outputsに対応する`gpt-4.1-mini`とし、モデル名は環境変数で差し替え可能にする。テンプレート用のプレースホルダー値は起動時設定検証で拒否する。
 
 ## Prompt Injection対策
 
@@ -116,6 +116,6 @@ MVPで許可するツールは `load_user_profile` のみとする。
 
 ## Phase 5の境界
 
-フェーズ5は、保存済み`analysis`と`captured_page`を受けて実行できるAIユースケースを完成させる。Chrome拡張からの認証付きRoute Handler、分析開始API、ポーリング、実データによるAgent Workspace更新はフェーズ6で結合する。
+フェーズ5は、保存済み`analysis`と`captured_page`を受けて実行できるAIユースケースを完成させた。Chrome拡張からの認証付きRoute Handler、分析開始API、ポーリング、実データによるAgent Workspace更新はフェーズ6で結合済みである。
 
 既存DBスキーマで必要情報を保存できるため、フェーズ5で追加migrationは不要である。
