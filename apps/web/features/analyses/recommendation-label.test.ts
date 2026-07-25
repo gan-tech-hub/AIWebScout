@@ -26,8 +26,6 @@ describe('getRecommendationLabel', () => {
   );
 
   it('does not present an unavailable score as a negative recommendation', () => {
-    expect(getRecommendationLabel('job', null)).toBe(
-      '推奨度を算出できません',
-    );
+    expect(getRecommendationLabel('job', null)).toBe('推奨度を算出できません');
   });
 });

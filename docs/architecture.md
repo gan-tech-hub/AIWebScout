@@ -55,7 +55,6 @@ flowchart TB
 | Next.js App Router / TypeScript | Server/Client境界とRoute Handlerを一つの型安全なアプリで管理できる       |
 | Tailwind CSS / shadcn/ui        | デザイントークンを保ちながらアクセシブルなUIを短期間で構築できる         |
 | Motion / Lucide                 | 状態遷移に意味を持たせ、依存を増やしすぎず高品質な体験を作れる           |
-| TanStack Query                  | 分析状態のポーリング、キャッシュ、再取得、失敗状態を管理しやすい         |
 | React Hook Form / Zod           | フォームとAPI契約を同じ検証思想で扱える                                  |
 | Supabase                        | Auth、Postgres、RLSを一体で提供しMVP速度と権限設計を両立できる           |
 | OpenAI API                      | Structured Outputs と Tool Calling をサーバー側で制御できる              |
@@ -73,13 +72,16 @@ apps/
     app/                 routes and route handlers
     components/          shared presentation
     features/            feature UI and view models
-    domain/              domain models and policies
-    application/         use cases and ports
+    domain/              domain models
+    application/         use cases and repository ports
     infrastructure/      Supabase/OpenAI adapters
-    lib/                 framework utilities
+    features/            presentation and view models
+    services/            application composition
+    lib/                 framework and API utilities
   extension/
     src/background/      service worker
-    src/content/         capture logic
+    src/capture/         capture and sanitization
+    src/launcher/        activeTab grant and panel launch
     src/sidepanel/       review and submit UI
 packages/
   shared/src/types/      transport/domain-neutral types
@@ -110,8 +112,6 @@ docs/                    architecture and ADRs
 
 | Method | Path                      | Responsibility                      |
 | ------ | ------------------------- | ----------------------------------- |
-| POST   | `/api/captures`           | キャプチャを保存                    |
-| POST   | `/api/analyses`           | 保存済みキャプチャの分析を開始      |
 | POST   | `/api/captures/analyze`   | 拡張向けの保存＋分析開始            |
 | GET    | `/api/analyses`           | 検索、種別/状態filter、sort付き履歴 |
 | GET    | `/api/analyses/:id`       | page、analysis、steps、tagsを取得   |
@@ -119,7 +119,7 @@ docs/                    architecture and ADRs
 | GET    | `/api/profile`            | 自分のプロフィール取得              |
 | PUT    | `/api/profile`            | 自分のプロフィール更新              |
 
-分析開始はMVPではレコードを即時 `pending` で返し、サーバー処理を開始する。Vercel等の実行制約が問題になる場合は後続で Supabase Edge Functions/queue へアダプター交換する。クライアントは TanStack Query で限定的にpollingし、完了時に停止する。
+分析開始はMVPではレコードを即時 `pending` で返し、サーバー処理を開始する。Vercel等の実行制約が問題になる場合は後続で Supabase Edge Functions/queue へアダプター交換する。分析詳細はServer Componentの限定的なrefresh pollingを使用し、完了または失敗時に停止する。
 
 ## 8. AIエージェント処理フロー
 
@@ -154,7 +154,8 @@ flowchart LR
 4. **Extension**: 安全なDOM取得、preview、認証API送信、詳細遷移
 5. **AI workflow**: OpenAI、分類、strategy、構造化結果、step保存
 6. **Integration**: polling、再分析、エラー/ローディング、結合確認
-7. **Hardening**: テスト拡充、アクセシビリティ、セットアップ、ロードマップ
+7. **Polish**: 日本語出力、推奨ラベル、ページ種別固有表示
+8. **Release Quality**: テスト拡充、プライバシー、認証継続性、セットアップ、ロードマップ
 
 各フェーズで `lint`、`typecheck`、`test`、`build` を実行し、外部サービス境界はmockまたはadapterで検証する。
 
@@ -175,9 +176,9 @@ flowchart LR
 
 重大なブロッカーはないため次の仮定で進める。
 
-- 認証は Supabase Email Magic Link を第一候補とする（OAuthは後続追加可能）。
+- 認証は Supabase Email/Password を使用する（OAuthは後続追加可能）。
 - 開発URLは `http://localhost:3000`、extension API接続先は設定可能にする。
-- Side Panelを採用し、利用不可時のPopup fallbackはMVP後に検討する。
+- Side Panelを採用し、Launcher Popupから明示的に`activeTab`権限を取得する。
 - 初期デプロイ先は未決定。Next.js互換環境を前提にadapter境界を維持する。
 - 本文上限は共有定数 `50,000` 文字から開始し、実測で調整する。
 - データ保持期間、削除ポリシー、利用規約は公開前に確定が必要。

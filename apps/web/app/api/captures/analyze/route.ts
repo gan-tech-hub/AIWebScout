@@ -7,7 +7,7 @@ import {
   SupabaseAnalysisRepository,
   SupabaseCaptureRepository,
 } from '@/infrastructure/repositories';
-import { createAnalysisAgent } from '@/services/ai';
+import { createAnalysisAgent, logAnalysisFailure } from '@/services/ai';
 import {
   apiFailure,
   apiSuccess,
@@ -73,8 +73,13 @@ async function handlePost(request: NextRequest) {
         capturedPageId: capture.id,
         userId: user.id,
       });
-    } catch {
-      // RunPageAnalysis persists a safe failed state. Provider details stay server-side.
+    } catch (error: unknown) {
+      // RunPageAnalysis persists the user-facing failed state. Log only safe
+      // identifiers and the bounded error code; never page or provider data.
+      logAnalysisFailure(error, {
+        analysisId: analysis.id,
+        capturedPageId: capture.id,
+      });
     }
   });
 

@@ -64,33 +64,39 @@ export function SettingsForm({ profile }: { profile: UserProfile | null }) {
   });
   async function onSubmit(values: ProfileFormValues) {
     setSaveError('');
-    const response = await fetch('/api/profile', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        displayName: values.displayName,
-        bio: values.bio,
-        skills: values.skills
-          .split(',')
-          .map((skill) => skill.trim())
-          .filter(Boolean),
-        desiredConditions: { text: values.desiredConditions },
-        desiredHourlyRate: values.desiredHourlyRate,
-        availableHours: values.availableHours,
-        preferredWorkStyle: values.preferredWorkStyle,
-        analysisInstruction: values.analysisInstruction,
-      }),
-    });
-    const body = (await response.json()) as {
-      success: boolean;
-      error?: { message: string };
-    };
-    if (!body.success) {
-      setSaveError(body.error?.message ?? '設定を保存できませんでした。');
-      return;
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          displayName: values.displayName,
+          bio: values.bio,
+          skills: values.skills
+            .split(',')
+            .map((skill) => skill.trim())
+            .filter(Boolean),
+          desiredConditions: { text: values.desiredConditions },
+          desiredHourlyRate: values.desiredHourlyRate,
+          availableHours: values.availableHours,
+          preferredWorkStyle: values.preferredWorkStyle,
+          analysisInstruction: values.analysisInstruction,
+        }),
+      });
+      const body = (await response.json()) as {
+        success: boolean;
+        error?: { message: string };
+      };
+      if (!response.ok || !body.success) {
+        setSaveError(body.error?.message ?? '設定を保存できませんでした。');
+        return;
+      }
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 2800);
+    } catch {
+      setSaveError(
+        '設定サービスへ接続できませんでした。通信状態を確認して再度お試しください。',
+      );
     }
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 2800);
   }
   function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
     void handleSubmit(onSubmit)(event);

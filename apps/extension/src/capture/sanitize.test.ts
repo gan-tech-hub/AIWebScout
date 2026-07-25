@@ -1,7 +1,7 @@
 import { CAPTURE_LIMITS } from '@ai-web-scout/shared';
 import { describe, expect, it } from 'vitest';
 import { ExtensionError } from '../api/errors';
-import { normalizeCapture, redactSensitiveText } from './sanitize';
+import { normalizeCapture, redactSensitiveText, sanitizeUrl } from './sanitize';
 
 describe('normalizeCapture', () => {
   it('trims and bounds captured page content', () => {
@@ -64,5 +64,38 @@ describe('normalizeCapture', () => {
     expect(value).not.toContain('secret');
     expect(value).not.toContain('sk-private');
     expect(value).toContain('[REDACTED]');
+  });
+
+  it('redacts sensitive URL parameters while preserving ordinary parameters', () => {
+    const result = sanitizeUrl(
+      'https://example.com/article?page=2&access_token=secret&apiKey=value#section',
+    );
+
+    expect(result).toContain('page=2');
+    expect(result).toContain('access_token=%5BREDACTED%5D');
+    expect(result).toContain('apiKey=%5BREDACTED%5D');
+    expect(result).not.toContain('secret');
+    expect(result).not.toContain('value');
+    expect(result).toContain('#section');
+  });
+
+  it('rejects URLs containing embedded credentials', () => {
+    expect(() => sanitizeUrl('https://user:password@example.com/')).toThrow(
+      '認証情報を含むURLは取得できません。',
+    );
+  });
+
+  it('redacts secrets from the title and meta description', () => {
+    const capture = normalizeCapture({
+      title: 'authorization=secret',
+      url: 'https://example.com',
+      pageText: '',
+      selectedText: '',
+      metaDescription: 'API key: hidden-value',
+      capturedAt: '2026-07-23T00:00:00.000Z',
+    });
+
+    expect(capture.title).toBe('authorization: [REDACTED]');
+    expect(capture.metaDescription).toBe('API key: [REDACTED]');
   });
 });

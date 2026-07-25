@@ -37,14 +37,15 @@ describe('toTypeSpecificEntries', () => {
     });
 
     expect(entries).toHaveLength(18);
-    expect(Object.fromEntries(entries.map((entry) => [entry.label, entry.value])))
-      .toMatchObject({
-        案件タイトル: 'Frontend Engineer',
-        必須スキル: 'TypeScript',
-        スキル適合度: '88 / 100',
-        条件適合度: '76 / 100',
-        次に確認すべき事項: '開発体制',
-      });
+    expect(
+      Object.fromEntries(entries.map((entry) => [entry.label, entry.value])),
+    ).toMatchObject({
+      案件タイトル: 'Frontend Engineer',
+      必須スキル: 'TypeScript',
+      スキル適合度: '88 / 100',
+      条件適合度: '76 / 100',
+      次に確認すべき事項: '開発体制',
+    });
   });
 
   it('localizes article difficulty and learning priority', () => {

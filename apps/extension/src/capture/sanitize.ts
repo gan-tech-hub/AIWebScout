@@ -23,10 +23,39 @@ export function redactSensitiveText(value: string): string {
     .replace(/(パスワード|認証トークン)\s*[:：=]\s*\S+/g, '$1: [REDACTED]');
 }
 
+const SENSITIVE_URL_PARAMETER =
+  /^(?:access_?token|auth(?:orization)?|api_?key|code|credential|jwt|passw(?:or)?d|secret|session(?:_?id)?|token)$/i;
+
+export function sanitizeUrl(value: string): string {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new ExtensionError(
+      'INVALID_CAPTURE',
+      'ページURLを確認できませんでした。',
+    );
+  }
+  if (url.username || url.password) {
+    throw new ExtensionError(
+      'INVALID_CAPTURE',
+      '認証情報を含むURLは取得できません。',
+    );
+  }
+  for (const key of new Set(url.searchParams.keys())) {
+    if (SENSITIVE_URL_PARAMETER.test(key)) {
+      url.searchParams.set(key, '[REDACTED]');
+    }
+  }
+  return url.toString();
+}
+
 export function normalizeCapture(raw: RawPageCapture): CapturePageInput {
   const capture = {
-    title: truncate(raw.title, CAPTURE_LIMITS.title) || 'Untitled page',
-    url: truncate(raw.url, CAPTURE_LIMITS.url),
+    title:
+      truncate(redactSensitiveText(raw.title), CAPTURE_LIMITS.title) ||
+      'Untitled page',
+    url: truncate(sanitizeUrl(raw.url), CAPTURE_LIMITS.url),
     pageText: truncate(
       redactSensitiveText(raw.pageText),
       CAPTURE_LIMITS.pageText,
@@ -36,7 +65,7 @@ export function normalizeCapture(raw: RawPageCapture): CapturePageInput {
       CAPTURE_LIMITS.selectedText,
     ),
     metaDescription: truncate(
-      raw.metaDescription,
+      redactSensitiveText(raw.metaDescription),
       CAPTURE_LIMITS.metaDescription,
     ),
     sourceType: 'chrome_extension',
