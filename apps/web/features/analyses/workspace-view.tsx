@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { PageTypeBadge, StatusBadge } from '@/components/ui/status-badge';
 import { Surface } from '@/components/ui/surface';
 import { cn } from '@/lib/utils';
+import { getRecommendationLabel } from './recommendation-label';
 import type { WorkspaceAnalysis, WorkspaceStep } from './types';
 
 const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
@@ -336,7 +337,12 @@ function InsightSection({
 
 function FinalInsight({ workspace }: { workspace: WorkspaceAnalysis }) {
   const { item, insight } = workspace;
-  const recommendationScore = item.recommendationScore ?? 0;
+  const recommendationScore = item.recommendationScore;
+  const scoreForProgress = recommendationScore ?? 0;
+  const recommendationLabel = getRecommendationLabel(
+    item.pageType,
+    recommendationScore,
+  );
   return (
     <Surface className="h-fit overflow-hidden">
       <div className="border-line relative overflow-hidden border-b p-5">
@@ -354,7 +360,7 @@ function FinalInsight({ workspace }: { workspace: WorkspaceAnalysis }) {
             className="mt-6 flex items-end gap-3"
           >
             <span className="text-6xl font-semibold tracking-tighter">
-              {recommendationScore}
+              {recommendationScore ?? '—'}
             </span>
             <span className="text-muted mb-2 text-xs">
               / 100
@@ -365,12 +371,12 @@ function FinalInsight({ workspace }: { workspace: WorkspaceAnalysis }) {
           <div className="bg-panel-hover mt-4 h-1.5 overflow-hidden rounded-full">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${recommendationScore}%` }}
+              animate={{ width: `${scoreForProgress}%` }}
               transition={{ duration: 1, delay: 0.2 }}
               className="h-full rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-400 to-cyan-400"
             />
           </div>
-          <p className="mt-5 text-sm font-semibold">応募を強く推奨</p>
+          <p className="mt-5 text-sm font-semibold">{recommendationLabel}</p>
           <p className="text-muted mt-2 text-xs leading-5">{item.summary}</p>
         </div>
       </div>
